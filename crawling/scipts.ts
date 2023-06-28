@@ -2,7 +2,7 @@ import * as cheerio from "cheerio";
 import fs from "fs";
 import { jsonReader } from "../src/utils/crawling";
 
-const fromYear = 1950;
+const fromYear = 2020;
 const endYear = 2023;
 
 const category = {
@@ -14,13 +14,13 @@ const category = {
 
 const raceCateogry = {
     raceResult: "race-result",
-    fastestLaps: "fastest-laps",
+    // fastestLaps: "fastest-laps",
     pitStopSummary: "pit-stop-summary",
-    startingGrid: "starting-grid",
-    qualifying: "qualifying",
-    pracetice1: "practice-1",
-    pracetice2: "practice-2",
-    pracetice3: "practice-3",
+    // startingGrid: "starting-grid",
+    // qualifying: "qualifying",
+    // pracetice1: "practice-1",
+    // pracetice2: "practice-2",
+    // pracetice3: "practice-3",
 }
 
 const driversFile = "./crawling/data/drivers.json"
@@ -45,7 +45,7 @@ const fetchWithDelay = (link: string) => {
                     reject(error)
                 });
             resolve(data)
-        }, 2000)
+        }, 500)
     })
 }
 
@@ -53,12 +53,12 @@ const attrDriver = ["pos", "driver", "nationality", "team", "pts"]
 const attrRaces = ["grandprix", "date", "winner", "team", "laps", "time"]
 const attrResultRace = ["pos", "no", "driver", "car", "laps", "time", "pts"]
 const attrOtherReace = {
-    [raceCateogry.fastestLaps]: ["pos", "no", "driver", "car", "lap", "time-of-day", "time", "avg-speed"],
-    [raceCateogry.pitStopSummary]: ["stop", "no", "driver", "lap", "time-of-day", "time", "total"],
-    [raceCateogry.qualifying]: ["pos", "no", "driver", "car", "q1", "q2", "q3", "laps"],
-    [raceCateogry.pracetice1]: ["pos", "no", "driver", "car", "time", "gap", "laps"],
-    [raceCateogry.pracetice2]: ["pos", "no", "driver", "car", "time", "gap", "laps"],
-    [raceCateogry.pracetice3]: ["pos", "no", "driver", "car", "time", "gap", "laps"],
+    // [raceCateogry.fastestLaps]: ["pos", "no", "driver", "car", "lap", "time-of-day", "time", "avg-speed"],
+    [raceCateogry.pitStopSummary]: ["stop", "no", "driver", "car", "lap", "time-of-day", "time", "total"],
+    // [raceCateogry.qualifying]: ["pos", "no", "driver", "car", "q1", "q2", "q3", "laps"],
+    // [raceCateogry.pracetice1]: ["pos", "no", "driver", "car", "time", "gap", "laps"],
+    // [raceCateogry.pracetice2]: ["pos", "no", "driver", "car", "time", "gap", "laps"],
+    // [raceCateogry.pracetice3]: ["pos", "no", "driver", "car", "time", "gap", "laps"],
 }
 
 const getAllDriver = async () => {
@@ -149,7 +149,7 @@ const getAllRaces = async () => {
 
 const readRaceJsonFileAndCrawREsult = async () => {
     jsonReader(racesFile, async (err: any, data: any) => {
-        const arrData = data.filter((d : any) => d.year === 2023);
+        const arrData = data.filter((d : any) => d.year >= 2020);
 
         for (let iDoc = 0; iDoc < arrData.length; iDoc += 1) {
             const result: any[] = [];
@@ -172,9 +172,11 @@ const readRaceJsonFileAndCrawREsult = async () => {
                         const firstName = loadCol(CLASS.FIRSTNAME).text().trim().replace(/\n/, "")
                         const lastName = loadCol(CLASS.LASTNAME).text().trim().replace(/\n/, "")
                         eachDriver[attrResultRace[col - 1]] = `${firstName} ${lastName}`;
+                        eachDriver["link"] = doc.link
                         continue;
                     }
                     eachDriver[attrResultRace[col - 1]] = loadCol.text().trim().replace(/\n/, "")
+                    eachDriver["link"] = doc.link
                 }
                 result.push(eachDriver)
             }
@@ -206,18 +208,31 @@ const readRaceJsonFileAndCrawREsult = async () => {
 
 const readRaceJsonFileAndCrawOtherREsult = async () => {
     jsonReader(racesFile, async (err: any, data: any) => {
-        const arrData = data.filter((d : any) => d.year === 2023);
+        const arrData = data.filter((d : any) => d.year >= 2020);
 
         for (let iList = 0; iList < Object.keys(attrOtherReace).length; iList += 1) {
             const nameList = Object.keys(attrOtherReace)[iList];
-            console.log("===nameList===", nameList)
             for (let iDoc = 0; iDoc < arrData.length; iDoc += 1) {
                 const result: any[] = [];
-                const doc = arrData[iDoc]
+                const doc = arrData[iDoc];
+
+                const fetchResult = await fetchWithDelay(`https://www.formula1.com${doc.link}`);
+
+                const $race = cheerio.load(fetchResult as string).html();
+                // const isPrac1 = $race.includes("practice-1")
+                // const isPrac2 = $race.includes("practice-2")
+                // const isPrac3 = $race.includes("practice-3")
+                // const isFastestLaps = cheerio.load(fetchResult as string)(".resultsarchive-side-nav")?.html()?.includes(raceCateogry.fastestLaps)
+                // console.log("==", doc.link, isFastestLaps)
+                // if (!isFastestLaps && nameList === raceCateogry.fastestLaps) continue;
+                // if (!isPrac1 && nameList === raceCateogry.pracetice1) continue;
+                // if (!isPrac2 && nameList === raceCateogry.pracetice2) continue;
+                // if (!isPrac3 && nameList === raceCateogry.pracetice3) continue;
+                const isPitStop = cheerio.load(fetchResult as string)(".resultsarchive-side-nav")?.html()?.includes(raceCateogry.pitStopSummary)
+                console.log("==", doc.link, isPitStop)
+                if (!isPitStop && nameList === raceCateogry.pitStopSummary) continue;
                 const linkRaw = `https://www.formula1.com${doc.link}`.replace(raceCateogry.raceResult, nameList);
-                console.log("==linkRaw==", linkRaw)
                 const dataDriverEachYear = await fetchWithDelay(linkRaw);
-                console.log("====dataDriverEachYear====")
 
                 const $ = cheerio.load(dataDriverEachYear as string);
                 const selectTabel = $(`${CLASS.RESULT_TABLE}`);
@@ -234,9 +249,11 @@ const readRaceJsonFileAndCrawOtherREsult = async () => {
                             const firstName = loadCol(CLASS.FIRSTNAME).text().trim().replace(/\n/, "")
                             const lastName = loadCol(CLASS.LASTNAME).text().trim().replace(/\n/, "")
                             eachDriver[attrOtherReace[nameList][col - 1]] = `${firstName} ${lastName}`;
+                            eachDriver["link"] = doc.link;
                             continue;
                         }
                         eachDriver[attrOtherReace[nameList][col - 1]] = loadCol.text().trim().replace(/\n/, "")
+                        eachDriver["link"] = doc.link;
                     }
                     result.push(eachDriver)
                 }
@@ -251,7 +268,6 @@ const readRaceJsonFileAndCrawOtherREsult = async () => {
                     }
                     const concatData = (existsData || []).concat(result)
                     const jsonString = JSON.stringify(concatData)
-                    console.log("===jsonString===", jsonString)
                     await fs.writeFile(newFile, jsonString, (err: any) => {
                         if (err) {
                             console.log('Error writing file', err)
