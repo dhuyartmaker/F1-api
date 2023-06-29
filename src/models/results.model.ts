@@ -25,18 +25,6 @@ const resultSchema = new mongoose.Schema({
 resultSchema.index({ raceId: 1 })
 resultSchema.index({ driverId: 1 })
 
-const qualifySchema = new mongoose.Schema({
-    q1: { type: Number },
-    q2: { type: Number },
-    q3: { type: Number },
-    laps: { type: Number },
-    timeStartingGrid: { type: Number },
-}, {
-    timestamps: false,
-    id: false,
-    versionKey: false
-})
-
 //Export the model
 const ResultModel = mongoose.model('Result', resultSchema);
 export default ResultModel;
