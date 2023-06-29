@@ -1,6 +1,9 @@
 # F1-api
 This is my project which crawling data from F1 result and create API Get. Use ExpressJs(Node v20), MongoDB.
 There are all GET Api need to show on website.
+If project is error when running, pls contact me. Thank you!
+Zalo: 0398911205
+Facebook: https://www.facebook.com/duchuy24sbtc
 
 - [Description](#description)
 - [Install](#install/notes)
@@ -45,6 +48,7 @@ Bad:
 - Crawling is so slow if i increase from year. Because I save crawling data with json file. Once writing into file, I need a variable to hold all data from json file and append new crawling data.
 - I think i need use csv to avoid holding big data.
 - I also use "any" type.
+- Maybe I miss error handling.
 
 ## APIDocument
 - https://documenter.getpostman.com/view/13827204/2s93zB419p
