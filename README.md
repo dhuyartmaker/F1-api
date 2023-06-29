@@ -23,7 +23,10 @@ Somebody want to find information of driver in specify year, they must start fro
 
 ## Install/Notes
 - Use ExpressJs(Node v20), MongoDB (v4 up).
-- Create .env, src/config/config.json, src/config/dev.config.json as examples
+- Create some files as sample
+```.env```
+```src/config/config.json```
+```src/config/dev.config.json``` 
 
 ## Usage
 Crawling
@@ -68,7 +71,7 @@ Detail result by DriverId
 - Query: (year: required, driverId: required)
 
 List Race by Year
-- Api get result of specify race. Get by year and country when race is celebrated
+- Api get result of specify race. Get by year and country where race is celebrated
 - Query: (year: required, country: required)
 
 List Qualifying / FastestLaps / PitStopSummary / StartingGrid
