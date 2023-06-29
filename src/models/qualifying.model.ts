@@ -11,6 +11,7 @@ const qualifyingSchema = new mongoose.Schema({
     q2: { type: Number },
     q3: { type: Number },
     laps: { type: Number },
+    position: { type: Number },
 }, {
     timestamps: true
 });
