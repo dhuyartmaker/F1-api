@@ -166,7 +166,8 @@ async function a() {
                         position: pitStopJson.pos === "NC" ? -1 : Number(pitStopJson.pos),
                         timeOfDay: new Date(`0 ${pitStopJson["time-of-day"]}`),
                         time: HHmmssToNumber(pitStopJson.time),
-                        total: HHmmssToNumber(pitStopJson["total"])
+                        total: HHmmssToNumber(pitStopJson["total"]),
+                        stops: Number(pitStopJson.stop)
                     })
                 }
 

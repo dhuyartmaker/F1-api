@@ -1,21 +1,21 @@
-import FastestLapsModel from "../fastest-lap.model";
+import PractiveModel from "../practice.model";
 
 interface IQuery {
     raceId?: string;
+    practiceTime?: number;
 }
 
-class FastestLapRepo {
+class PracticeRepo {
     async getAll({
         query,
-        select = ["position", "laps", "timeOfDay", "time", "avgSpeed"],
+        select = ["practiceTime", "time", "gap", "laps", "position"],
         sortBy = { position: 1 }
     } : {
         query: IQuery,
         select?: Array<string>,
         sortBy?: Record<string, any>
     }) {
-        console.log("==query==", query)
-        return await FastestLapsModel.find(query)
+        return await PractiveModel.find(query)
             .sort(sortBy)
             .select(select.reduce((result, item) => ({ ...result, [item] : 1 }), {}))
             .populate({
@@ -29,4 +29,4 @@ class FastestLapRepo {
     }
 }
 
-export default new FastestLapRepo()
+export default new PracticeRepo()

@@ -1,21 +1,20 @@
-import FastestLapsModel from "../fastest-lap.model";
+import StartingGridModel from "../starting-grid.model";
 
 interface IQuery {
     raceId?: string;
 }
 
-class FastestLapRepo {
+class StartingGridRepo {
     async getAll({
         query,
-        select = ["position", "laps", "timeOfDay", "time", "avgSpeed"],
+        select = ["time", "position"],
         sortBy = { position: 1 }
     } : {
         query: IQuery,
         select?: Array<string>,
         sortBy?: Record<string, any>
     }) {
-        console.log("==query==", query)
-        return await FastestLapsModel.find(query)
+        return await StartingGridModel.find(query)
             .sort(sortBy)
             .select(select.reduce((result, item) => ({ ...result, [item] : 1 }), {}))
             .populate({
@@ -29,4 +28,4 @@ class FastestLapRepo {
     }
 }
 
-export default new FastestLapRepo()
+export default new StartingGridRepo()
