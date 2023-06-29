@@ -7,14 +7,15 @@ import _ from "lodash";
 import qualifyingRepo from "../models/repo/qualifying.repo";
 import errorResponse from "../core/error.response";
 import RaceModel from "../models/races.model";
+import fastestlapsRepo from "../models/repo/fastestlaps.repo";
 
-class QualifyingController {
+class FastestLapController {
     getAll = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
         const query : any = req.query;
         if (!query.year || !query.country) throw new errorResponse.BadRequestError()
         const findRace = await RaceModel.findOne(query);
         if (!findRace) throw new errorResponse.NotFoundError("Not found Race")
-        const result = await qualifyingRepo.getAll({ query: { raceId: `${findRace._id}` } });
+        const result = await fastestlapsRepo.getAll({ query: { raceId: `${findRace._id}` } });
 
         return new SuccessResponse.OkResponseMessage({
             message: "Ok",
@@ -24,4 +25,4 @@ class QualifyingController {
     })
 }
 
-export default new QualifyingController()
+export default new FastestLapController()
