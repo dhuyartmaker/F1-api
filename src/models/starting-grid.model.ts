@@ -4,19 +4,19 @@ import "./races.model"
 import "./results.model"
 
 // Declare the Schema of the Mongo model
-const fastestLapSchema = new mongoose.Schema({
-    raceId: { type: mongoose.Types.ObjectId, ref: 'Races' },
+const startingGridSchema = new mongoose.Schema({
+    raceId: { type: mongoose.Types.ObjectId, ref: 'Race' },
     driverId: { type: mongoose.Types.ObjectId, ref: 'Driver' },
     resultId: { type:  mongoose.Types.ObjectId, ref: 'Result' },
+    time: { type: Number },
     position: { type: Number },
-    lap: { type: Number },
-    timeOfDay: { type: Date },
-    time: { type: mongoose.Types.Decimal128 },
-    avgSpeed: { type: Number }
 }, {
     timestamps: true
 });
 
+startingGridSchema.index({ raceId: 1 })
+startingGridSchema.index({ driverId: 1 })
+
 //Export the model
-const FastestLapModel = mongoose.model('FastestLap', fastestLapSchema);
-export default FastestLapModel;
+const StartingGridModel = mongoose.model('StartingGrid', startingGridSchema);
+export default StartingGridModel;

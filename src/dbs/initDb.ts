@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import config from '../config/config';
-console.log("====config====", config)
 const connectString = config.config.db;
 
 class Database {
@@ -11,7 +10,6 @@ class Database {
     }
 
     connect() {
-        console.log("==", connectString)
         if ("dev") {
             mongoose.set("debug", true)
             mongoose.set("debug", { color: true })
