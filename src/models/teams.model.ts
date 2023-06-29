@@ -8,5 +8,5 @@ const teamSchema = new mongoose.Schema({
 });
 
 //Export the model
-const TeamModel = mongoose.model('Team', teamSchema);
+const TeamModel = mongoose.model('Teams', teamSchema);
 export default TeamModel;

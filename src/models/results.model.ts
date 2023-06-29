@@ -1,8 +1,10 @@
 import mongoose from "mongoose";
+import "./drivers.model"
+import "./races.model"
 
 // Declare the Schema of the Mongo model
 const resultSchema = new mongoose.Schema({
-    raceId: { type: mongoose.Types.ObjectId, ref: 'Races' },
+    raceId: { type: mongoose.Types.ObjectId, ref: 'Race' },
     driverId: { type: mongoose.Types.ObjectId, ref: 'Driver' },
     pts: { type: Number },
     timeRetired: { 
@@ -10,7 +12,7 @@ const resultSchema = new mongoose.Schema({
         other: { type: String },
         lapRemaining: { type: Number },
     },
-    teamId: { type: mongoose.Types.ObjectId, ref: 'Team' },
+    teamId: { type: mongoose.Types.ObjectId, ref: 'Teams' },
     no: { type: Number },
     position: { type: Number },
     laps: { type: Number },
@@ -20,11 +22,15 @@ const resultSchema = new mongoose.Schema({
     timestamps: true
 });
 
+resultSchema.index({ raceId: 1 })
+resultSchema.index({ driverId: 1 })
+
 const qualifySchema = new mongoose.Schema({
     q1: { type: Number },
     q2: { type: Number },
     q3: { type: Number },
-    laps: { type: Number } 
+    laps: { type: Number },
+    timeStartingGrid: { type: Number },
 }, {
     timestamps: false,
     id: false,
