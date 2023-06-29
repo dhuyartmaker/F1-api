@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import fs from "fs";
-import { jsonReader } from "../src/utils/crawling";
+import { asyncReader, jsonReader } from "../src/utils/crawling";
+import mongoose from "mongoose";
 
 const fromYear = 2020;
 const endYear = 2023;
@@ -12,12 +13,13 @@ const category = {
     fastestLaps: "fastest-laps",
 }
 
+const qualifyResult = "./crawling/data/qualifying-result.json"
+
 const raceCateogry = {
     raceResult: "race-result",
     // fastestLaps: "fastest-laps",
-    pitStopSummary: "pit-stop-summary",
-    // startingGrid: "starting-grid",
-    // qualifying: "qualifying",
+    // pitStopSummary: "pit-stop-summary",
+    startingGrid: "starting-grid",
     // pracetice1: "practice-1",
     // pracetice2: "practice-2",
     // pracetice3: "practice-3",
@@ -54,7 +56,8 @@ const attrRaces = ["grandprix", "date", "winner", "team", "laps", "time"]
 const attrResultRace = ["pos", "no", "driver", "car", "laps", "time", "pts"]
 const attrOtherReace = {
     // [raceCateogry.fastestLaps]: ["pos", "no", "driver", "car", "lap", "time-of-day", "time", "avg-speed"],
-    [raceCateogry.pitStopSummary]: ["stop", "no", "driver", "car", "lap", "time-of-day", "time", "total"],
+    // [raceCateogry.pitStopSummary]: ["stop", "no", "driver", "car", "lap", "time-of-day", "time", "total"],
+    [raceCateogry.startingGrid]: ["stop", "no", "driver", "car", "time"],
     // [raceCateogry.qualifying]: ["pos", "no", "driver", "car", "q1", "q2", "q3", "laps"],
     // [raceCateogry.pracetice1]: ["pos", "no", "driver", "car", "time", "gap", "laps"],
     // [raceCateogry.pracetice2]: ["pos", "no", "driver", "car", "time", "gap", "laps"],
@@ -173,10 +176,12 @@ const readRaceJsonFileAndCrawREsult = async () => {
                         const lastName = loadCol(CLASS.LASTNAME).text().trim().replace(/\n/, "")
                         eachDriver[attrResultRace[col - 1]] = `${firstName} ${lastName}`;
                         eachDriver["link"] = doc.link
+                        eachDriver["id"] = new mongoose.Types.ObjectId()
                         continue;
                     }
                     eachDriver[attrResultRace[col - 1]] = loadCol.text().trim().replace(/\n/, "")
                     eachDriver["link"] = doc.link
+                    eachDriver["id"] = new mongoose.Types.ObjectId()
                 }
                 result.push(eachDriver)
             }
@@ -228,9 +233,9 @@ const readRaceJsonFileAndCrawOtherREsult = async () => {
                 // if (!isPrac1 && nameList === raceCateogry.pracetice1) continue;
                 // if (!isPrac2 && nameList === raceCateogry.pracetice2) continue;
                 // if (!isPrac3 && nameList === raceCateogry.pracetice3) continue;
-                const isPitStop = cheerio.load(fetchResult as string)(".resultsarchive-side-nav")?.html()?.includes(raceCateogry.pitStopSummary)
-                console.log("==", doc.link, isPitStop)
-                if (!isPitStop && nameList === raceCateogry.pitStopSummary) continue;
+                // const isPitStop = cheerio.load(fetchResult as string)(".resultsarchive-side-nav")?.html()?.includes(raceCateogry.pitStopSummary)
+                // console.log("==", doc.link, isPitStop)
+                // if (!isPitStop && nameList === raceCateogry.pitStopSummary) continue;
                 const linkRaw = `https://www.formula1.com${doc.link}`.replace(raceCateogry.raceResult, nameList);
                 const dataDriverEachYear = await fetchWithDelay(linkRaw);
 

@@ -2,8 +2,10 @@ import DriverModel from "../src/models/drivers.model";
 import FastestLapModel from "../src/models/fastest-lap.model";
 import PitStopSummaryModel from "../src/models/pit-stop-summary.model";
 import PractiveModel from "../src/models/practice.model";
+import QualifyingModel from "../src/models/qualifying.model";
 import RaceModel from "../src/models/races.model";
 import ResultModel from "../src/models/results.model";
+import StartingGridModel from "../src/models/starting-grid.model";
 import TeamModel from "../src/models/teams.model";
 
 import { HHmmssToNumber, asyncReader, calcAddTime, jsonReader } from "../src/utils/crawling";
@@ -13,6 +15,7 @@ const driversFile = "./crawling/data/drivers.json"
 const racesFile = "./crawling/data/races.json"
 const raceResult = "./crawling/data/race-result.json"
 const qualifyResult = "./crawling/data/qualifying-result.json"
+const startingGridResult = "./crawling/data/starting-grid-result.json"
 const fastestResult = "./crawling/data/fastest-laps-result.json"
 const pitStopResult = "./crawling/data/pit-stop-summary-result.json"
 const practice1Result = "./crawling/data/practice-1-result.json"
@@ -26,6 +29,7 @@ async function a() {
     await Database.getInstance()
     const raceResultList = await asyncReader(raceResult);
     const qualifyResultList = await asyncReader(qualifyResult);
+    const startingGridResultList = await asyncReader(startingGridResult);
     const fastestResultList = await asyncReader(fastestResult);
     const pitStopResultList = await asyncReader(pitStopResult);
     const pracetice1List = await asyncReader(practice1Result);
@@ -56,7 +60,6 @@ async function a() {
                     const driverId = await DriverModel.findOne({ name: result.driver})
                     const teamId = await TeamModel.findOne({ name: result.car })
 
-                    const findQualifyByLink = (qualifyResultList as Array<any>).find(rs => rs.link === result.link)
                     console.log("==result==", result)
                     const insertRaceResult = await ResultModel.create({
                         ...result,
@@ -71,15 +74,54 @@ async function a() {
                                 Number(`${result.time}`.replace("laps", "").replace("lap", "").replace("+", "")) :
                                 0,
                         },
-                        qualifying: {
-                            q1: HHmmssToNumber(findQualifyByLink.q1),
-                            q2: HHmmssToNumber(findQualifyByLink.q2),
-                            q3: HHmmssToNumber(findQualifyByLink.q3),
-                            laps: findQualifyByLink.laps,
-                        },
                         position: result.pos === "NC" ? -1 :
                             result.pos === "DQ" ? 0 :
                             Number(result.pos)
+                    })
+
+                    filterByLink[iResult]._id = insertRaceResult._id;
+                }
+
+                // Qualifying
+                const qualifyResult = (qualifyResultList as Array<any>).filter(li => li.link === race.link);
+                for (let iFastest = 0; iFastest < qualifyResult.length; iFastest += 1) {
+                    const fastestJson = qualifyResult[iFastest];
+                    const findResultId = filterByLink.find(item => 
+                        item.driver === fastestJson.driver &&
+                        item.link === fastestJson.link
+                    )
+                    const driverId = await DriverModel.findOne({ name: fastestJson.driver})
+                    console.log("==fastestJson==", fastestJson)
+                    const insertFastest = await QualifyingModel.create({
+                        ...fastestJson,
+                        driverId: driverId?._id,
+                        raceId: createRace._id,
+                        resultId: findResultId?._id,
+                        q1: fastestJson.q1 === "DNS" ? -2 : fastestJson.q1 === "DNF" ? 0 : fastestJson.q1 === "" ? -1 : HHmmssToNumber(fastestJson.q1),
+                        q2: fastestJson.q2 === "DNS" ? -2 : fastestJson.q2 === "DNF" ? 0 : fastestJson.q2 === "" ? -1 : HHmmssToNumber(fastestJson.q2),
+                        q3: fastestJson.q3 === "DNS" ? -2 : fastestJson.q3 === "DNF" ? 0 : fastestJson.q3 === "" ? -1 : HHmmssToNumber(fastestJson.q3),
+                        laps: fastestJson.laps,
+                        position: fastestJson.pos === "RT" ? -1 : fastestJson.pos === "NC" ? -1 : Number(fastestJson.pos),
+                    })
+                }
+
+                // Starting Grid
+                const startingGridResults = (startingGridResultList as Array<any>).filter(li => li.link === race.link);
+                for (let iFastest = 0; iFastest < startingGridResults.length; iFastest += 1) {
+                    const fastestJson = startingGridResults[iFastest];
+                    const findResultId = filterByLink.find(item => 
+                        item.driver === fastestJson.driver &&
+                        item.link === fastestJson.link
+                    )
+                    const driverId = await DriverModel.findOne({ name: fastestJson.driver})
+                    console.log("==fastestJson==", fastestJson)
+                    const insertFastest = await StartingGridModel.create({
+                        ...fastestJson,
+                        driverId: driverId?._id,
+                        raceId: createRace._id,
+                        resultId: findResultId?._id,
+                        time: fastestJson.time ? HHmmssToNumber(fastestJson.time) : -1,
+                        position: fastestJson.stop === "NC" ? -1 : Number(fastestJson.stop),
                     })
                 }
 
@@ -87,12 +129,18 @@ async function a() {
                 const fastestResult = (fastestResultList as Array<any>).filter(li => li.link === race.link);
                 for (let iFastest = 0; iFastest < fastestResult.length; iFastest += 1) {
                     const fastestJson = fastestResult[iFastest];
+                    const findResultId = filterByLink.find(item => 
+                        item.driver === fastestJson.driver &&
+                        item.link === fastestJson.link
+                    )
+
                     const driverId = await DriverModel.findOne({ name: fastestJson.driver})
                     console.log("==fastestJson==", fastestJson)
                     const insertFastest = await FastestLapModel.create({
                         ...fastestJson,
                         driverId: driverId?._id,
                         raceId: createRace._id,
+                        resultId: findResultId?._id,
                         position: fastestJson.pos === "NC" ? -1 : Number(fastestJson.pos),
                         timeOfDay: new Date(`0 ${fastestJson["time-of-day"]}`),
                         time: HHmmssToNumber(fastestJson.time),
@@ -104,12 +152,17 @@ async function a() {
                 const pitStopResult = (pitStopResultList as Array<any>).filter(li => li.link === race.link);
                 for (let iPit = 0; iPit < pitStopResult.length; iPit += 1) {
                     const pitStopJson = pitStopResult[iPit];
+                    const findResultId = filterByLink.find(item => 
+                        item.driver === pitStopJson.driver &&
+                        item.link === pitStopJson.link
+                    )
                     const driverId = await DriverModel.findOne({ name: pitStopJson.driver })
                     console.log("==HHmmssToNumber(pitStopJson.time)==", pitStopJson)
                     const insertFastest = await PitStopSummaryModel.create({
                         ...pitStopJson,
                         driverId: driverId?._id,
                         raceId: createRace._id,
+                        resultId: findResultId?._id,
                         position: pitStopJson.pos === "NC" ? -1 : Number(pitStopJson.pos),
                         timeOfDay: new Date(`0 ${pitStopJson["time-of-day"]}`),
                         time: HHmmssToNumber(pitStopJson.time),
@@ -124,12 +177,17 @@ async function a() {
                 console.log("====practice1====", practice1.length)
                 for (let iPractice = 0; iPractice < practice1.length; iPractice += 1) {
                     const practice1Json = practice1[iPractice];
+                    const findResultId = filterByLink.find(item => 
+                        item.driver === practice1Json.driver &&
+                        item.link === practice1Json.link
+                    )
                     const driverId = await DriverModel.findOne({ name: practice1Json.driver })
                     console.log("==practice1Json==", practice1Json)
                     const insertPractive = await PractiveModel.create({
                         ...practice1Json,
                         driverId: driverId?._id,
                         raceId: createRace._id,
+                        resultId: findResultId?._id,
                         practiceTime: 1,
                         time: HHmmssToNumber(practice1Json.time),
                         gap: practice1Json.gap,
@@ -137,14 +195,19 @@ async function a() {
                     })
                 }
 
-                console.log("====practice2====", practice2.length)
+                // console.log("====practice2====", practice2.length)
                 for (let iPractice = 0; iPractice < practice2.length; iPractice += 1) {
                     const practice1Json = practice2[iPractice];
+                    const findResultId = filterByLink.find(item => 
+                        item.driver === practice1Json.driver &&
+                        item.link === practice1Json.link
+                    )
                     const driverId = await DriverModel.findOne({ name: practice1Json.driver })
                     const insertPractive = await PractiveModel.create({
                         ...practice1Json,
                         driverId: driverId?._id,
                         raceId: createRace._id,
+                        resultId: findResultId?._id,
                         practiceTime: 2,
                         time: HHmmssToNumber(practice1Json.time),
                         gap: practice1Json.gap,
@@ -152,15 +215,20 @@ async function a() {
                     })
                 }
 
-                console.log("====practice3====", practice3.length)
+                // console.log("====practice3====", practice3.length)
                 for (let iPractice = 0; iPractice < practice3.length; iPractice += 1) {
                     const practice1Json = practice3[iPractice];
+                    const findResultId = filterByLink.find(item => 
+                        item.driver === practice1Json.driver &&
+                        item.link === practice1Json.link
+                    )
                     const driverId = await DriverModel.findOne({ name: practice1Json.driver })
                     const insertPractive = await PractiveModel.create({
                         ...practice1Json,
                         driverId: driverId?._id,
                         raceId: createRace._id,
                         practiceTime: 3,
+                        resultId: findResultId?._id,
                         time: HHmmssToNumber(practice1Json.time),
                         gap: practice1Json.gap,
                         position: practice1Json.pos === "NC" ? -1 : Number(practice1Json.pos),
