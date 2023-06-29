@@ -8,7 +8,7 @@ export const jsonReader = (filePath: string, cb: any) => {
         try {
             if (fileData.length === 0) return cb && cb(null, [])
             const object = JSON.parse(fileData.toString());
-            console.log("===", object.length)
+            console.log("Write length", object.length)
             return cb && cb(null, object);
         } catch (err) {
             return cb && cb(err);

@@ -50,10 +50,11 @@ async function a() {
                 const race = listRace[iRace];
                 const findWinner = await DriverModel.findOne({ name: race.winner });
                 const createRace = await RaceModel.create({ ...race, driverWinnerId: findWinner?._id, country: race.grandprix, time: new Date(race.date) })
-                // console.log("==createRace==", createRace)
+                console.log("==createRace==", createRace)
 
                 //  Race-result
                 const filterByLink = (raceResultList as Array<any>).filter(li => li.link === race.link);
+                console.log("==filterByLink==", filterByLink)
                 const timeofWinnerPosition = HHmmssToNumber(filterByLink.find((rs : any) => rs.pos === '1').time);
                 for (let iResult = 0; iResult < filterByLink.length; iResult += 1) {
                     const result = filterByLink[iResult];

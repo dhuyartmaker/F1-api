@@ -14,6 +14,9 @@ import Database from "./connectDb";
 async function main() {
     console.log("Deleting....")
     await Database.getInstance()
+
+    await DriverModel.deleteMany({})
+    await TeamModel.deleteMany({})
     await RaceModel.deleteMany({})
     await FastestLapModel.deleteMany({})
     await ResultModel.deleteMany({})
